@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, StyleSheet, Dimensions } from 'react-native';
+import { Text, StyleSheet, Dimensions, View, Image } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { GestureHandlerRootView, GestureDetector, Gesture } from 'react-native-gesture-handler';
 import Animated, {
@@ -11,7 +11,6 @@ import Animated, {
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const screens = ['Settings', 'Home', 'Details'] as const;
-type Screen = typeof screens[number];
 
 export default function App() {
   const currentIndex = useSharedValue(1); // 中央（Home）から開始
@@ -42,7 +41,7 @@ export default function App() {
   }));
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={styles.rootView}>
       <NavigationContainer>
         <GestureDetector gesture={panGesture}>
           <Animated.View style={[styles.wrapper, animatedStyle]}>
@@ -58,7 +57,7 @@ export default function App() {
 
 function SettingsScreen() {
   return (
-    <Animated.View style={[styles.screen, { backgroundColor: '#e0f7fa' }]}>
+    <Animated.View style={[styles.screen, styles.settingsScreen]}>
       <Text style={styles.title}>⚙️ 設定</Text>
       <Text style={styles.link}>➡️ スワイプでホームへ</Text>
     </Animated.View>
@@ -66,9 +65,78 @@ function SettingsScreen() {
 }
 
 function HomeScreen() {
+  interface NeuMorphProps {
+    children: React.ReactNode;
+    size?: number;
+    style?: any;
+  }
+
+  const NeuMorph: React.FC<NeuMorphProps> = ({ children, size, style }) => {
+    return (
+      <View style={styles.topShadow}>
+        <View style={styles.bottomShadow}>
+          <View
+            style={[
+              styles.inner,
+              { width: size ?? 40, height: size ?? 40, borderRadius: (size ?? 40) / 2 },
+              style
+            ]}
+          >
+            {children}
+          </View>
+        </View>
+      </View>
+    );
+  };
+
   return (
-    <Animated.View style={styles.screen}>
-      <Text style={styles.title}>🏠 ホーム</Text>
+    <Animated.View style={[styles.screen, styles.homeScreen]}>
+      <View style={styles.topContainer}>
+        <NeuMorph size={48} style={{}}>
+          <Text style={styles.iconText}>←</Text>
+        </NeuMorph>
+
+        <View>
+          <Text style={styles.playing}>PLAYING NOW</Text>
+        </View>
+
+        <NeuMorph size={48} style={{}}>
+          <Text style={styles.iconText}>≡</Text>
+        </NeuMorph>
+      </View>
+
+      <View style={styles.songArtContainer}>
+        <NeuMorph size={200} style={{}}>
+          <Image source={require('./src/assets/images/flower.jpg')} style={styles.songArt} />
+        </NeuMorph>
+      </View>
+
+      <View style={styles.songContainer}>
+        <Text style={styles.songTitle}>Lost it</Text>
+        <Text style={styles.artist}>Flume ft. Vic Mensa</Text>
+      </View>
+
+      <View style={styles.trackContainer}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={styles.time}>1:21</Text>
+          <Text style={styles.time}>3:46</Text>
+        </View>
+      </View>
+
+      <View style={styles.controlsContainer}>
+        <NeuMorph size={60} style={{}}>
+          <Text style={styles.iconText}>⏮</Text>
+        </NeuMorph>
+
+        <NeuMorph size={60} style={{ backgroundColor: '#8AAAFF', borderColor: '#8AAAFF' }}>
+          <Text style={styles.iconTextWhite}>⏸</Text>
+        </NeuMorph>
+
+        <NeuMorph size={60} style={{}}>
+          <Text style={styles.iconText}>⏭</Text>
+        </NeuMorph>
+      </View>
+      
       <Text style={styles.link}>⬅️ 設定 / ➡️ 詳細</Text>
     </Animated.View>
   );
@@ -76,7 +144,7 @@ function HomeScreen() {
 
 function DetailsScreen() {
   return (
-    <Animated.View style={[styles.screen, { backgroundColor: '#f0f0f0' }]}>
+    <Animated.View style={[styles.screen, styles.detailsScreen]}>
       <Text style={styles.title}>📄 詳細</Text>
       <Text style={styles.link}>⬅️ スワイプでホームへ</Text>
     </Animated.View>
@@ -84,6 +152,9 @@ function DetailsScreen() {
 }
 
 const styles = StyleSheet.create({
+  rootView: {
+    flex: 1,
+  },
   wrapper: {
     flexDirection: 'row',
     width: SCREEN_WIDTH * 3,
@@ -94,6 +165,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  settingsScreen: {
+    backgroundColor: '#e0f7fa',
+  },
+  homeScreen: {
+    backgroundColor: '#DEE9FD',
+    paddingHorizontal: 32,
+  },
+  detailsScreen: {
+    backgroundColor: '#f0f0f0',
+  },
   title: {
     fontSize: 26,
     marginBottom: 20,
@@ -101,5 +182,88 @@ const styles = StyleSheet.create({
   link: {
     fontSize: 16,
     color: '#007aff',
+    marginTop: 20,
   },
+  topShadow: {
+    shadowOffset: {
+      width: -6,
+      height: -6
+    },
+    shadowOpacity: 1,
+    shadowRadius: 6,
+    shadowColor: '#FBFFFF'
+  },
+  bottomShadow: {
+    shadowOffset: {
+      width: 6,
+      height: 6
+    },
+    shadowOpacity: 1,
+    shadowRadius: 6,
+    shadowColor: '#B7C4DD'
+  },
+  inner: {
+    backgroundColor: '#DEE9F7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderColor: '#E2ECFD',
+    borderWidth: 1
+  },
+  topContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  playing: {
+    color: '#91A1BD',
+    fontWeight: '800'
+  },
+  songArtContainer: {
+    marginVertical: 32,
+    alignItems: 'center'
+  },
+  songArt: {
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    borderColor: '#D7E1F3',
+    borderWidth: 10
+  },
+  songContainer: {
+    alignItems: 'center'
+  },
+  songTitle: {
+    fontSize: 30,
+    color: '#6C7A93',
+    fontWeight: '600'
+  },
+  artist: {
+    fontSize: 14,
+    marginTop: 6,
+    color: '#91A1BD',
+    fontWeight: '500'
+  },
+  trackContainer: {
+    marginTop: 32,
+    marginBottom: 32
+  },
+  time: {
+    fontSize: 10,
+    color: '#91A1BD',
+    fontWeight: '700'
+  },
+  controlsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  iconText: {
+    fontSize: 20,
+    color: '#91A1BD',
+  },
+  iconTextWhite: {
+    fontSize: 20,
+    color: '#FFFFFF',
+  }
 });
