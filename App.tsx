@@ -1,131 +1,105 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
 import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import { Text, StyleSheet, Dimensions } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { GestureHandlerRootView, GestureDetector, Gesture } from 'react-native-gesture-handler';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  runOnJS,
+} from 'react-native-reanimated';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const screens = ['Settings', 'Home', 'Details'] as const;
+type Screen = typeof screens[number];
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+export default function App() {
+  const currentIndex = useSharedValue(1); // 中央（Home）から開始
+  const translateX = useSharedValue(-SCREEN_WIDTH); // 最初はHomeなので−SCREEN_WIDTH
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+  const goTo = (index: number) => {
+    currentIndex.value = index;
+    translateX.value = withSpring(-SCREEN_WIDTH * index);
+  };
+
+  const panGesture = Gesture.Pan()
+    .onUpdate((e) => {
+      translateX.value = -SCREEN_WIDTH * currentIndex.value + e.translationX;
+    })
+    .onEnd((e) => {
+      const threshold = SCREEN_WIDTH / 5;
+      if (e.translationX > threshold && currentIndex.value > 0) {
+        runOnJS(goTo)(currentIndex.value - 1); // 左に戻る
+      } else if (e.translationX < -threshold && currentIndex.value < screens.length - 1) {
+        runOnJS(goTo)(currentIndex.value + 1); // 右に進む
+      } else {
+        runOnJS(goTo)(currentIndex.value); // スナップバック
+      }
+    });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
   return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <NavigationContainer>
+        <GestureDetector gesture={panGesture}>
+          <Animated.View style={[styles.wrapper, animatedStyle]}>
+            <SettingsScreen />
+            <HomeScreen />
+            <DetailsScreen />
+          </Animated.View>
+        </GestureDetector>
+      </NavigationContainer>
+    </GestureHandlerRootView>
   );
 }
 
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  /*
-   * To keep the template simple and small we're adding padding to prevent view
-   * from rendering under the System UI.
-   * For bigger apps the recommendation is to use `react-native-safe-area-context`:
-   * https://github.com/AppAndFlow/react-native-safe-area-context
-   *
-   * You can read more about it here:
-   * https://github.com/react-native-community/discussions-and-proposals/discussions/827
-   */
-  const safePadding = '5%';
-
+function SettingsScreen() {
   return (
-    <View style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        style={backgroundStyle}>
-        <View style={{paddingRight: safePadding}}>
-          <Header/>
-        </View>
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-            paddingHorizontal: safePadding,
-            paddingBottom: safePadding,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </View>
+    <Animated.View style={[styles.screen, { backgroundColor: '#e0f7fa' }]}>
+      <Text style={styles.title}>⚙️ 設定</Text>
+      <Text style={styles.link}>➡️ スワイプでホームへ</Text>
+    </Animated.View>
+  );
+}
+
+function HomeScreen() {
+  return (
+    <Animated.View style={styles.screen}>
+      <Text style={styles.title}>🏠 ホーム</Text>
+      <Text style={styles.link}>⬅️ 設定 / ➡️ 詳細</Text>
+    </Animated.View>
+  );
+}
+
+function DetailsScreen() {
+  return (
+    <Animated.View style={[styles.screen, { backgroundColor: '#f0f0f0' }]}>
+      <Text style={styles.title}>📄 詳細</Text>
+      <Text style={styles.link}>⬅️ スワイプでホームへ</Text>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  wrapper: {
+    flexDirection: 'row',
+    width: SCREEN_WIDTH * 3,
+    height: '100%',
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
+  screen: {
+    width: SCREEN_WIDTH,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
+  title: {
+    fontSize: 26,
+    marginBottom: 20,
   },
-  highlight: {
-    fontWeight: '700',
+  link: {
+    fontSize: 16,
+    color: '#007aff',
   },
 });
-
-export default App;
