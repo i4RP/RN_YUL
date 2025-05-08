@@ -11,7 +11,6 @@ import Animated, {
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const screens = ['Settings', 'Home', 'Details'] as const;
-type Screen = typeof screens[number];
 
 export default function App() {
   const currentIndex = useSharedValue(1); // 中央（Home）から開始
@@ -42,7 +41,7 @@ export default function App() {
   }));
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={styles.rootView}>
       <NavigationContainer>
         <GestureDetector gesture={panGesture}>
           <Animated.View style={[styles.wrapper, animatedStyle]}>
@@ -58,7 +57,7 @@ export default function App() {
 
 function SettingsScreen() {
   return (
-    <Animated.View style={[styles.screen, { backgroundColor: '#e0f7fa' }]}>
+    <Animated.View style={[styles.screen, styles.settingsScreen]}>
       <Text style={styles.title}>⚙️ 設定</Text>
       <Text style={styles.link}>➡️ スワイプでホームへ</Text>
     </Animated.View>
@@ -76,7 +75,7 @@ function HomeScreen() {
 
 function DetailsScreen() {
   return (
-    <Animated.View style={[styles.screen, { backgroundColor: '#f0f0f0' }]}>
+    <Animated.View style={[styles.screen, styles.detailsScreen]}>
       <Text style={styles.title}>📄 詳細</Text>
       <Text style={styles.link}>⬅️ スワイプでホームへ</Text>
     </Animated.View>
@@ -84,6 +83,9 @@ function DetailsScreen() {
 }
 
 const styles = StyleSheet.create({
+  rootView: {
+    flex: 1,
+  },
   wrapper: {
     flexDirection: 'row',
     width: SCREEN_WIDTH * 3,
@@ -93,6 +95,12 @@ const styles = StyleSheet.create({
     width: SCREEN_WIDTH,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  settingsScreen: {
+    backgroundColor: '#e0f7fa',
+  },
+  detailsScreen: {
+    backgroundColor: '#f0f0f0',
   },
   title: {
     fontSize: 26,
